@@ -1,64 +1,59 @@
+"""
+Contains all the information needed to upload a build to TestFlight.
+Is one step more abstract than the env_accessor (uses it).
+Verifies that all required information is present and valid.
+"""
 import json
-import os
 from pathlib import Path
+from typing import Optional
 from testflight_uploader.build_file_finder import find_build_file_path
+from pretty_print import *
+from env_accessor import *
 
 
 class UploadConfiguration:
-
+    # from env
+    test_groups: Optional[str]
+    max_upload_attempts: int
+    # derived
+    changelog_path: Path
     ipa_path: Path
     app_store_key_path: Path
-    changelog_path: Path
-    test_groups = None
-    max_upload_attempts: int = 10
 
-    verbose: bool
+    # defaults
+    _max_upload_attempts_fallback = 10
 
-    def __init__(self, api_key_path: Path, verbose = False):
-        self.verbose = verbose
+    # non config
+    _print_header = "[UploadConfiguration]"
+
+    def __init__(self, api_key_path: Path):
         self.app_store_key_path = api_key_path
         self._populate()
+        self._try_repair()
         self.verify()
+        pretty_print(f"{self._print_header} Created upload configuration\n{self}", color=SUCCESS)
 
     def _populate(self):
-        self._log("TODO: expose changelog somewhere")
+        self.test_groups = TEST_GROUPS
+        self.max_upload_attempts = MAX_UPLOAD_ATTEMPTS
+
+        self.ipa_path = find_build_file_path(".ipa")
+
+        pretty_print(f"{self._print_header} TODO expose changelog. Currently it's hardcoded to Assets/Editor/CICD/newest_changelog.txt.", color=TODO)
         self.changelog_path = Path("Assets/Editor/CICD/newest_changelog.txt")
-        self.ipa_path = find_build_file_path(".ipa", self.verbose)
 
-        self.test_groups = os.getenv("TEST_GROUPS", None)
-        if self.test_groups is None:
-            self._log(f"TEST_GROUPS environment variable not set. No test groups will be added.")
-
-        self.max_upload_attempts = self._get_max_upload_attempts(self.max_upload_attempts)
-
-    def _get_max_upload_attempts(self, fallback=10) -> int:
-        key = "MAX_UPLOAD_ATTEMPTS"
-        if not key in os.environ:
-            self._log(f"$MAX_UPLOAD_ATTEMPTS not set. Falling back to {fallback}")
-            return fallback
-
-        try:
-            env_value = os.getenv("MAX_UPLOAD_ATTEMPTS", str(self.max_upload_attempts))
-            parsed_value = int(env_value)
-        except ValueError:
-            self._log(f"Cannot parse $MAX_UPLOAD_ATTEMPTS as int ({env_value}). Falling back to {fallback}")
-            return fallback
-
-        if parsed_value <= 0:
-            self._log(f"$MAX_UPLOAD_ATTEMPTS needs to be at least 1! Got ({env_value}). Falling back to {fallback}")
-            return fallback
-
-        return parsed_value
+    def _try_repair(self) -> None:
+        """ Tries to fix invalid configuration values."""
+        if self.max_upload_attempts <= 0:
+            pretty_print(f"{self._print_header} Invalid max_upload_attempts value! Found {self.max_upload_attempts}, falling back to {self._max_upload_attempts_fallback}", color=WARNING)
+            self.max_upload_attempts = self._max_upload_attempts_fallback
 
     def verify(self) -> None:
+        """ Verifies that all required configuration values are valid. Raises on invalid values. """
         self._verify_is_file(self.app_store_key_path, "App Store Connect key")
         self._verify_app_store_key_format()
         self._verify_is_file(self.changelog_path, "changelog")
         self._verify_is_file(self.ipa_path, "build file")
-
-    def _verify_app_store_key_format(self):
-        with open(self.app_store_key_path, "r") as file:
-            self._verify_app_store_key_content(file.read())
 
     def _verify_is_file(self, path: Path, data_name: str):
         if not self.app_store_key_path.exists():
@@ -66,6 +61,10 @@ class UploadConfiguration:
 
         if not self.app_store_key_path.is_file():
             raise FileNotFoundError(f"Error loading {data_name}. Item at {path} is not a file!")
+
+    def _verify_app_store_key_format(self):
+        with open(self.app_store_key_path, "r") as file:
+            self._verify_app_store_key_content(file.read())
 
     def _verify_app_store_key_content(self, content: str):
         data = json.loads(content)
@@ -80,14 +79,10 @@ class UploadConfiguration:
         if key_id.startswith("$"):
             raise ValueError(f"{data_name} \"{key}\" invalid. Got \"{key_id}\"")
 
-    def _log(self, text: str) -> None:
-        if self.verbose:
-            print(f"[UploadConfiguration] {text}")
-
     def __str__(self) -> str:
         indent = "\t"
 
-        result = "Upload configuration: {\n"
+        result = "{\n"
 
         for item in ["ipa_path", "changelog_path", "app_store_key_path", "max_upload_attempts", "test_groups"]:
             if item == "":

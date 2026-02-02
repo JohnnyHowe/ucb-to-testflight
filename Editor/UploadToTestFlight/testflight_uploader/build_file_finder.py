@@ -1,38 +1,29 @@
 """
-Helper to find the Unity build file.
+Looks for the build file in the environment variable OUTPUT_DIRECTORY.
 
-Made for Unity Cloud Build .ipa and .aab files but will search CWD if the UCB environment variables don't exist.
+Made for Unity Cloud Build .ipa and .aab files.
 Executable path is OUTPUT_DIRECTORY/executable_name.type for UCB.
 PS. UCB does expose the full path but it's in an API that I can't be bothered touching (https://build-api.cloud.unity3d.com/docs).
 """
 import argparse
-import os
 from pathlib import Path
 from typing import Iterator
-
+from env_accessor import *
+from pretty_print import *
 
 class BuildFileFinder:
-    verbose: bool
     file_extension: str
     file_path: Path
 
-    def __init__(self, file_extension: str, verbose=False):
-        self.verbose = verbose
+    def __init__(self, file_extension: str):
         self._set_file_extension(file_extension)
         self._find_and_set_file()
 
     def _set_file_extension(self, file_extension: str) -> None:
-        lowered_extension = file_extension.lower()
-        if lowered_extension != file_extension:
-            self._log(f"Setting file extension to lowercase. (\"{file_extension}\" -> \"{lowered_extension}\")")
-            file_extension = lowered_extension
-
-        if not file_extension.startswith("."):
-            prefixed_extension = "." + file_extension
-            self._log(f"Recieved extension without \".\" prefix, adding it. (\"{file_extension}\" -> \"{prefixed_extension}\")")
-            file_extension = prefixed_extension
-
-        self.file_extension = lowered_extension
+        """ Set self.file_extension as a lowercase version of file_extension and add "." prefix if required. """
+        self.file_extension = file_extension.lower()
+        if not self.file_extension.startswith("."):
+            self.file_extension = "." + file_extension
 
     def _find_and_set_file(self) -> None:
         self.file_path = self._find_file()
@@ -40,55 +31,22 @@ class BuildFileFinder:
             raise FileNotFoundError(f"No {self.file_extension} found.")
 
     def _find_file(self) -> Path:
-        def log_warning():
-            self._log("TODO: implement searcher for [Bb]uild folder!")
-            return None
-
-        for searcher in [self._search_ucb_path, log_warning, self._search_everywhere]:
+        for searcher in [self._search_output_directory]:    # If you want to search more places, add functions to this list
             path = searcher()
             if path: 
                 return path
 
         raise FileNotFoundError(f"No {self.file_extension} file found!")
 
-    def _search_ucb_path(self):
+    def _search_output_directory(self):
         """
         Get file at $OUTPUT_DIRECTORY/build_name.type
         If $OUTPUT_DIRECTORY doesn't exist or the file doesn't, return None
         """
-        if not "OUTPUT_DIRECTORY" in os.environ:
-            self._log(f"OUTPUT_DIRECTORY environment variable not set! Skipping UCB default location search.")
+        if not OUTPUT_DIRECTORY.exists():
+            raise_pretty_exception(FileNotFoundError, BuildFileFinder._get_log_text(f"$OUTPUT_DIRECTORY ({get_pretty_path_string(OUTPUT_DIRECTORY)}) doesn't exist!"))
             return None
-        
-        output_directory = Path(os.environ["OUTPUT_DIRECTORY"])
-        self._log(f"$OUTPUT_DIRECTORY environment variable found: {BuildFileFinder._get_pretty_path_string(output_directory)}")
-
-        if not output_directory.exists():
-            self._log(f"$OUTPUT_DIRECTORY ({BuildFileFinder._get_pretty_path_string(output_directory)}) doesn't exist!")
-            return None
-        
-        return self._choose_file(list(self._search_path(output_directory)))
-
-    def _search_everywhere(self):
-        self._log("TODO: ignore unity Temp and Library folders")
-        self._log(f"Searching entire working directory for {self.file_extension} file.")
-        return self._choose_file(list(self._search_path(Path("./"), True)))
-
-    def _choose_file(self, paths: list):
-        if len(paths) == 0:
-            self._log(f"Found 0 {self.file_extension} files")
-            return None
-
-        if len(paths) == 1:
-            self._log(f"Found 1 {self.file_extension} file: {paths[0]}")
-            return paths[0]
-
-        self._log(f"Found {len(paths)} {self.file_extension} files:")
-        for file_path in paths:
-            self._log(f"  - {file_path}")
-
-        self._log("TODO: choose smarter. Taking first...")
-        return paths[0]
+        return self._choose_file(list(self._search_path(OUTPUT_DIRECTORY)))
 
     def _search_path(self, root: Path, recursive=False) -> Iterator:
         for file_name in os.listdir(root):
@@ -102,21 +60,32 @@ class BuildFileFinder:
 
             yield file_path
 
-    def _log(self, text: str):
-        if self.verbose:
-            print(BuildFileFinder._get_log_text(text))
+    def _choose_file(self, paths: list):
+        if len(paths) == 0:
+            self._log(f"Found 0 {self.file_extension} files")
+            return None
+
+        if len(paths) == 1:
+            self._log(f"Found 1 {self.file_extension} file: {paths[0]}", SUCCESS)
+            return paths[0]
+
+        self._log(f"Found {len(paths)} {self.file_extension} files:", WARNING)
+        for file_path in paths:
+            self._log(f"  - {file_path}")
+
+        self._log("TODO: choose smarter. Taking first...", TODO)
+        return paths[0]
+
+    def _log(self, text: str, color = REGULAR):
+        pretty_print(BuildFileFinder._get_log_text(text), color=color)
 
     @staticmethod
     def _get_log_text(text: str) -> str:
         return "[BuildFileFinder] " + text
 
-    @staticmethod
-    def _get_pretty_path_string(path: Path) -> str:
-        return f"{path} ({path.absolute()})"
 
-
-def find_build_file_path(extension: str, verbose=False) -> Path:
-    return BuildFileFinder(extension, verbose).file_path
+def find_build_file_path(extension: str) -> Path:
+    return BuildFileFinder(extension).file_path
 
 
 if __name__ == "__main__":
@@ -132,4 +101,4 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    print(find_build_file_path(args.extension, args.verbose))
+    print(find_build_file_path(args.extension))

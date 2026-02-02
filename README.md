@@ -7,6 +7,7 @@ TODO:
 * Nicer logging: Colours!
 * Document environment variables (the ones UCB gives automatically)
 * Add some way to set env locally
+* Bash wrapper for python script
 # Quick Start 
 Simply call
 ```
