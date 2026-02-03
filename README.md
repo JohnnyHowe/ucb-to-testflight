@@ -4,18 +4,16 @@ To run in UCB, all you need to do is get the API key and pass it to the upload s
 Keep reading to find out how.
 
 TODO:
-* Nicer logging: Colours!
 * Document environment variables (the ones UCB gives automatically)
-* Add some way to set env locally
 * Bash wrapper for python script
 # Quick Start 
 Simply call
 ```
-$ python ...jonathonoh.unitybuildtools.ios/UploadToTestflight/upload_to_testflight.py
+$ bash upload_to_testflight.sh
 ```
 # Required Environment Variables
 Put these all in a .env file in your project root but DON'T COMMIT IT to version control. It's going to contain sensitive information.\
-See [example.env](example.env)
+See [example.env](example.env) (TODO update this)
 
 (For Unity Cloud Build, go to your configuration > Advanced Settings and scroll down)
 
@@ -35,6 +33,8 @@ Just open the p8 file in any old text editor to get it.
 
 ## Other
 The following environment variables are set automatically by Unity Cloud Build.
+
+TODO: fill with info env_accessor.py
 
 # Creating Your API Key 
 This is how the upload script is able authenticate with App Store Connect.
