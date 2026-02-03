@@ -5,7 +5,8 @@ Keep reading to find out how.
 
 TODO:
 * Document environment variables (the ones UCB gives automatically)
-* Bash wrapper for python script
+* allow env to be overridden by command line args
+
 # Quick Start 
 Simply call
 ```
