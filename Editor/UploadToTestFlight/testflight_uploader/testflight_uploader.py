@@ -35,14 +35,15 @@ class TestflightUploader:
             return False
         return True
 
-    def upload(self):
+    def upload(self) -> bool:
         pretty_print(f"{self._print_prefix} running following command\n{self.command.to_str(newlines=True)}")
         for attempt_number in range(self.configuration.max_upload_attempts):
             pretty_print(f"{self._print_prefix} Starting attempt {attempt_number + 1} of {self.configuration.max_upload_attempts}")
             command_output = self._try_upload()
             if command_output.success:
-                return
+                return True
         pretty_print(f"{self._print_prefix} Out of upload attempts!", color=ERROR)
+        return False
             
     def _try_upload(self) -> CommandOutput:
         runner = CommandRunner(self.command)

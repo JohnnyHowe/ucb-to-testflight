@@ -15,7 +15,7 @@ def create_api_key_file(file_path: Path = Path("AppStoreConnectAPIKey.json")) ->
     """ Returns file path. """
     data = _get_data()
     with open(file_path, "w") as f:
-        json.dump(data, f)
+        json.dump(data, f, indent="\t")
     return file_path
 
 

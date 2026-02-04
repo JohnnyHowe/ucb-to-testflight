@@ -12,12 +12,14 @@ from pretty_print import *
 
 def main():
     api_key_path = create_api_key_file()
+    pretty_print(f"Created API key file {api_key_path}\n{api_key_path.read_text()}")
 
     # Run the uploader safely
     def get_configuration_and_upload():
         configuration = UploadConfiguration(api_key_path)
         uploader = TestflightUploader(configuration)
-        uploader.upload()
+        if not uploader.upload():
+            raise Exception("Upload failed!")
     error = _run_safe(get_configuration_and_upload)
 
     api_key_path.unlink()
