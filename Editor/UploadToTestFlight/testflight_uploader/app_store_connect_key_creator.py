@@ -25,10 +25,3 @@ def _get_data() -> dict:
         "issuer_id": APP_STORE_CONNECT_API_KEY_ISSUER_ID,
         "key": APP_STORE_CONNECT_API_KEY_CONTENT
     }
-
-
-def safe_print_content() -> None:
-    data = _get_data()
-    for key, value in data.items():
-        data[key] = value[:4] + "[... redacted]"
-    print(json.dumps(data, indent="\t"))

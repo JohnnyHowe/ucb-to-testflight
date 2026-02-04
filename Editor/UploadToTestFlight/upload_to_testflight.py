@@ -2,7 +2,7 @@ import os
 from typing import Callable
 from testflight_uploader.upload_configuration import UploadConfiguration
 from testflight_uploader.testflight_uploader import TestflightUploader
-from testflight_uploader.app_store_connect_key_creator import safe_print_content, create_api_key_file
+from testflight_uploader.app_store_connect_key_creator import create_api_key_file
 # TODO find better solution to this
 import sys
 from pathlib import Path
@@ -12,7 +12,6 @@ from pretty_print import *
 
 def main():
     api_key_path = create_api_key_file()
-    safe_print_content()
 
     # Run the uploader safely
     def get_configuration_and_upload():

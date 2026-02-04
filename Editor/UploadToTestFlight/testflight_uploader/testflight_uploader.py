@@ -22,15 +22,15 @@ class TestflightUploader:
         self.command.add_flag_and_value("-i", str(self.configuration.ipa_path))
         self.command.add_flag_and_value("--api-key-path", str(self.configuration.app_store_key_path))
         self.command.add_flag_and_value("--changelog", f"\"{self._read_changelog()}\"")
-        if self._should_include_GROUPS():
-            assert self.configuration.GROUPS
-            self.command.add_flag_and_value("--groups", self.configuration.GROUPS)
+        if self._should_include_groups():
+            assert self.configuration.groups
+            self.command.add_flag_and_value("--groups", self.configuration.groups)
         self.command.add_flag("--verbose")
 
-    def _should_include_GROUPS(self):
-        if not isinstance(self.configuration.GROUPS, str):
+    def _should_include_groups(self):
+        if not isinstance(self.configuration.groups, str):
             return False
-        stripped = self.configuration.GROUPS.strip()
+        stripped = self.configuration.groups.strip()
         if stripped == "":
             return False
         return True
