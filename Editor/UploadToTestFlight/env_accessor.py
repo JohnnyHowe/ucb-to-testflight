@@ -45,7 +45,7 @@ def _load():
     _populate_defaults()
 
     # Load as much without dotenv
-    not_found = _try_load_env("system")
+    not_found = _try_load_all_environment_variables("system")
     not_found_and_required = list(filter(lambda var_name: _ALL_VARIABLES[var_name].get("required", True), not_found))
 
     # quit early if we have everything we need
@@ -64,7 +64,7 @@ def _load():
         raise error
 
     # load vars from dotenv
-    not_found = _try_load_env(".env")
+    not_found = _try_load_all_environment_variables(".env")
     not_found_and_required = list(filter(lambda var_name: _ALL_VARIABLES[var_name].get("required", True), not_found))
 
     # quit early if we have everything we need
@@ -102,19 +102,33 @@ def _get_printable_str() -> str:
     return result.strip("\n")
 
 
-def _try_load_env(found_in: str) -> list:
+def _try_load_all_environment_variables(found_in: str) -> list:
     """ Returns names of variables that could not be set. """
     not_found = []
     for var_name, options in _ALL_VARIABLES.items():
-        if var_name in os.environ:
-            value = os.environ[var_name]
-            if "type" in options:
-                value = options["type"](value)
-            set_env_var(var_name, value)
+        if _try_load_environment_variable(var_name):
             options["found_in"] = found_in
         else:
             not_found.append(var_name)
     return not_found
+
+
+def _try_load_environment_variable(name) -> bool:
+    if not name in os.environ:
+        return False
+
+    options = _ALL_VARIABLES[name]
+    value = os.environ[name]
+
+    if "type" in options:
+        value = options["type"](value)
+
+    if isinstance(value, str):
+        value = value.replace("\\n", "\n")
+
+    set_env_var(name, value)
+
+    return True
 
 
 def get_env_var(name: str) -> object:
