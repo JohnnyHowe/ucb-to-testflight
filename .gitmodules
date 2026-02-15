@@ -1,0 +1,3 @@
+[submodule "Editor/python-command-line-helpers"]
+	path = Editor/python-command-line-helpers
+	url = https://github.com/JohnnyHowe/python-command-line-helpers
