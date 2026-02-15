@@ -41,7 +41,7 @@ class UploadConfiguration:
     def _populate(self):
         self.groups = GROUPS
         self.max_upload_attempts = MAX_UPLOAD_ATTEMPTS
-        self.timeout_per_attempt_seconds = TIMEOUT_PER_ATTEMPT
+        self.timeout_per_attempt_seconds = ATTEMPT_TIMEOUT
 
         self.ipa_path = find_build_file_path(".ipa")
 

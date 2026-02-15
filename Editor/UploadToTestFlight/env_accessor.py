@@ -13,25 +13,25 @@ from pretty_print import *
 
 
 # region Vars 
-APP_STORE_CONNECT_API_KEY_ISSUER_ID: str
-APP_STORE_CONNECT_API_KEY_ID: str
-APP_STORE_CONNECT_API_KEY_CONTENT: str
+API_KEY_ISSUER_ID: str
+API_KEY_ID: str
+API_KEY_CONTENT: str
 OUTPUT_DIRECTORY: Path
 GROUPS: Optional[str]
 MAX_UPLOAD_ATTEMPTS: int
-TIMEOUT_PER_ATTEMPT: int
+ATTEMPT_TIMEOUT: int
 
 
 # region Loading
 # Defaults: type: string, required: True, sensitive: True
 _ALL_VARIABLES = {
-    "APP_STORE_CONNECT_API_KEY_ISSUER_ID": {},
-    "APP_STORE_CONNECT_API_KEY_ID": {},
-    "APP_STORE_CONNECT_API_KEY_CONTENT": {},
+    "API_KEY_ISSUER_ID": {},
+    "API_KEY_ID": {},
+    "API_KEY_CONTENT": {},
     "GROUPS": {"required": False, "sensitive": False, "default": None},
     "OUTPUT_DIRECTORY": {"type": Path, "sensitive": False},
     "MAX_UPLOAD_ATTEMPTS": {"type": int, "required": False, "sensitive": False, "default": 10},
-    "TIMEOUT_PER_ATTEMPT": {"type": int, "required": False, "sensitive": False, "default": 60 * 5},
+    "ATTEMPT_TIMEOUT": {"type": int, "required": False, "sensitive": False, "default": 60 * 5},
 }
 
 _NO_DOTENV_ERROR_MESSAGE="""Missing dependency: python-dotenv.
