@@ -2,7 +2,7 @@ from pathlib import Path
 
 from build_file_finder import BuildFileFinder
 from api_key import *
-from fastlane_pilot_output_log_error_checker import get_errors, print_errors, raise_errors
+from fastlane_pilot_output_log_error_checker import get_errors, print_errors
 from python_command_line_helpers import command_building
 from python_pretty_print import pretty_print
 from python_command_runner import *
@@ -20,11 +20,15 @@ def upload_to_testflight(
 ):
 	ipa_path = BuildFileFinder(output_directory, ".ipa").file_path
 	api_key = APIKey(api_key_issuer_id, api_key_id, api_key_content)
-	print(api_key._file_path)
 
 	command = _build_command(ipa_path, api_key.file_path, changelog, groups)
 
-	_run_attempt(command, attempt_timeout_seconds)
+	for i in range(max_upload_attempts):
+		try:
+			_run_attempt(command, attempt_timeout_seconds)
+			break
+		except:
+			pretty_print(f"<warning>Failed upload attempt {i + 1} / {max_upload_attempts}</warning>")
 
 
 def _build_command(
@@ -66,7 +70,6 @@ def _run_attempt(command: list[str], timeout_seconds: int, print_log_stream: boo
 			print("Something peculiar has happened. fastlane indicated success, but there seem to be errors.")
 
 		print_errors(errors)
-		# raise_errors(errors)
 		quit()
 
 
