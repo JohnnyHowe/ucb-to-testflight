@@ -111,3 +111,15 @@ def _check_version_number_error(lines: list[OutputLine]) -> Iterator[Error]:
         yield error
 
 _error_checkers.append(_check_version_number_error)
+
+
+def _check_train_version_error(lines: list[OutputLine]) -> Iterator[Error]:
+    for line in lines:
+        if line.source != OutputSource.STDERR:
+            continue
+        if not "Validation failed (409) Invalid Pre-Release Train. The train version" in line.text:
+            continue
+        yield Error(Exception("Train version has already been used!"), target_lines=[line])
+        break
+
+_error_checkers.append(_check_train_version_error)
