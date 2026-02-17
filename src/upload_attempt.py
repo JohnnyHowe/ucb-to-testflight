@@ -30,12 +30,26 @@ def _run_attempt_command(command: list[str], timeout_seconds: int, print_log_str
 	""" returns (success, lines) """
 	lines: list[OutputLine] = []
 	generator = run_command(command, timeout_seconds=timeout_seconds)
+
+	in_success_part = False
+
 	try:
 		while True:
 			output_line = next(generator)
 			lines.append(output_line)
-			if print_log_stream or _is_useful_status_log(output_line):
-				print(output_line.text)
+
+			if "Successfully uploaded package to App Store Connect".lower() in output_line.text.lower():
+				in_success_part = True
+
+			if print_log_stream or _is_useful_status_log(output_line) or in_success_part:
+				log = output_line.text
+				if output_line.source == OutputSource.STDERR:
+					log = "<error>[STDERR]</error> " + log
+					pretty_print(log)
+
+			if "Successfully distributed build to Internal testers".lower() in output_line.text.lower():
+				in_success_part = False
+
 	except StopIteration as exception:
 		return (exception.value == 0, lines)
 
@@ -44,6 +58,10 @@ def _is_useful_status_log(line: OutputLine) -> bool:
 	contains_checks = [
 		"Ready to upload new build to TestFlight",
 		"Going to upload updated app to App Store Connect",
+		"Successfully uploaded the new binary to App Store Connect",
+		"Waiting for the build to show up in the build list",
+		"Successfully finished processing the build",
+		"Successfully set the changelog for build",
 	]
 	for contains_check in contains_checks:
 		if contains_check in line.text:
