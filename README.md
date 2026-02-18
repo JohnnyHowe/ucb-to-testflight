@@ -15,6 +15,20 @@ This package is built with Unity Cloud Build in mind so it works smoothly there,
 * git
 * fastlane (`pilot`)
 
+# Project Structure
+```text
+repo-root/
+  pyproject.toml
+  README.md
+  package-structure.md
+  src/
+    ucb_to_testflight/
+      __init__.py
+      ...module files...
+  tests/
+    run_all.py
+```
+
 # Install
 ## Install from GitHub
 ```bash
@@ -23,13 +37,9 @@ pip install "ucb-to-testflight @ git+https://github.com/OWNER/REPO.git"
 
 ## Session-only install (venv)
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install "ucb-to-testflight @ git+https://github.com/OWNER/REPO.git"
-
 bash upload_to_testflight.sh
-deactivate
 ```
+`upload_to_testflight.sh` creates/uses `.venv/` and installs project dependencies there before running.
 
 # Quick Start
 1. Create API key ([See: Creating Your API Key](#creating-your-api-key))
@@ -40,14 +50,15 @@ bash upload_to_testflight.sh
 ```
 `upload_to_testflight.sh` installs dependencies from `pyproject.toml` (including pinned git refs) and then runs the uploader.
 
-# Dependency Policy
-Python dependencies must not be added as git submodules in this repository.
-
-Use pinned git refs in `pyproject.toml` instead.
-
-Run this check locally or in CI:
+Direct module execution (debugging):
 ```bash
-bash tools/check_no_submodules.sh
+.venv/bin/python3 -m ucb_to_testflight.upload_to_testflight_cmd_entry
+```
+
+# Validation
+```bash
+python3 -m py_compile src/ucb_to_testflight/*.py tests/run_all.py
+python3 tests/run_all.py
 ```
 
 # Variables
