@@ -1,6 +1,6 @@
 # Overview
 Tool to upload `.ipa` files to TestFlight.\
-(It's mostly a wrapper for `fastlane pilot upload`, but with helper utilities for parameter loading, retries, and log/error parsing.)
+(This package is now mostly a Unity Cloud Build adapter around `pyliot`.)
 
 This package is built with Unity Cloud Build in mind so it works smoothly there, but it is also easy to run locally or in other CI systems.
 
@@ -14,94 +14,42 @@ This package is built with Unity Cloud Build in mind so it works smoothly there,
 * Python 3
 * git
 * fastlane (`pilot`)
+* network access during install (to fetch `pyliot` from GitHub)
 
-# Project Structure
-```text
-repo-root/
-  pyproject.toml
-  README.md
-  package-structure.md
-  src/
-    ucb_to_testflight/
-      __init__.py
-      ...module files...
-  tests/
-    run_all.py
-```
-
-# Install
-## Install from GitHub
-```bash
-pip install "ucb-to-testflight @ git+https://github.com/OWNER/REPO.git"
-```
-
-## Session-only install (venv)
-```bash
-bash upload_to_testflight.sh
-```
-`upload_to_testflight.sh` creates/uses `.venv/` and installs project dependencies there before running.
-
-# Quick Start
+# Running In Unity Cloud Build
 1. Create API key ([See: Creating Your API Key](#creating-your-api-key))
-2. Set parameters/environment variables (See: [passing variables](#passing-variables) and [variables docs](#variables))
-3. Run uploader
-```bash
-bash upload_to_testflight.sh
-```
-`upload_to_testflight.sh` installs dependencies from `pyproject.toml` (including pinned git refs) and then runs the uploader.
+2. Put this package somewhere in your project.
+3. Set environment variables in UCB (See: [passing variables](#passing-variables) and [variables docs](#variables))
+3. Add `upload_to_testflight.sh` as a post build script in UCB.
 
-Direct module execution (debugging):
-```bash
-.venv/bin/python3 -m ucb_to_testflight.upload_to_testflight_cmd_entry
-```
+# Running Locally
+Similar to above, but:
+* You have to run archive in xcode to create the `.ipa` file (UCB does this for you).
+* You have to call the `upload_to_testflight.sh` script yourself after archiving.
+* Variables are passed via a `.env` file. (See below)
 
-# Validation
-```bash
-python3 -m py_compile src/ucb_to_testflight/*.py tests/run_all.py
-python3 tests/run_all.py
-```
+<br>
+Put envionment variables in a `.env` file at project root.
 
-# Variables
-These can be passed either as command line arguments or as environment variables.\
-CLI arguments override environment variables if both exist.
-
-| CLI Name | ENV Name | Type | Required (Default) | Description |
-|-|-|-|-|-|
-| `--api-key-issuer-id` | `API_KEY_ISSUER_ID` | `string` | ✅ | Identifies the issuer who created the authentication token.<br>Look for "Issuer ID" on [the App Store Connect API page](https://appstoreconnect.apple.com/access/integrations/api). |
-| `--api-key-id`| `API_KEY_ID` | `string` | ✅ | Look for "Key ID" on your key in [the App Store Connect API page](https://appstoreconnect.apple.com/access/integrations/api). |
-| `--api-key-content`| `API_KEY_CONTENT` | `string` | ✅ | The raw text contents of your API key (`.p8` contents). |
-| `--output-directory`| `OUTPUT_DIRECTORY`| `path`/`string` | ✅ | Folder containing the build output file.<br>**(Unity Cloud Build usually sets this automatically)** |
-| `--changelog`| `CHANGELOG` | `string` | ✅ | Release notes text for this TestFlight upload. |
-| `--groups`| `GROUPS` | `comma-separated string` | ❌ | Tester groups to distribute to (`groupA,groupB`). If empty, build still goes to internal testers. |
-| `--max-upload-attempts`| `MAX_UPLOAD_ATTEMPTS` | `int` | ❌ (10) | Maximum retry attempts for upload. |
-| `--attempt-timeout` | `ATTEMPT_TIMEOUT` | `int` | ❌ (600) | Max time each upload attempt can run in seconds. |
-
-# Passing Variables
-## Locally (.env file)
-Put variables in a `.env` file at project root.\
-**Do not commit this file; it contains sensitive values.**
+Your `.env` file must contain:
+* All required variables
+* `OUTPUT_DIRECTORY` which points to the folder that your `.ipa` is stored in
+ must also contain all the required variables and 
 
 See [example.env](example.env)
 
-## Unity Cloud Build (Environment Variables)
-Go to configuration -> Advanced Settings -> Environment variables. \
-Important: **some required variables are provided automatically by UCB.**
+# Variables
 
-## Command Line Arguments
-You can pass any variable with CLI flags.
+| Variable | Type | Required (Default) | Description |
+|-|-|-|-|
+| `API_KEY_ISSUER_ID` | `string` | ✅ | Identifies the issuer who created the authentication token.<br>Look for "Issuer ID" on [the App Store Connect API page](https://appstoreconnect.apple.com/access/integrations/api). |
+| `API_KEY_ID` | `string` | ✅ | Look for "Key ID" on your key in [the App Store Connect API page](https://appstoreconnect.apple.com/access/integrations/api). |
+| `API_KEY_CONTENT` | `string` | ✅ | The raw text contents of your API key (`.p8` contents). |
+| `CHANGELOG_PATH` | `Path` | ✅ | Path to the file containing release notes for the build. |
+| `GROUPS` | `comma-separated string` | ❌ | Tester groups to distribute to (`groupA,groupB`). If empty, build still goes to internal testers. |
+| `MAX_UPLOAD_ATTEMPTS` | `int` | ❌ (10) | Maximum retry attempts for upload. |
+| `ATTEMPT_TIMEOUT` | `int` | ❌ (600) | Max time each upload attempt can run in seconds. |
 
-Example:
-```bash
-bash upload_to_testflight.sh \
-  --api-key-issuer-id "<issuer-id>" \
-  --api-key-id "<key-id>" \
-  --api-key-content "<p8-content>" \
-  --output-directory "./Builds/iOS" \
-  --changelog "Internal QA build" \
-  --groups "Internal QA" \
-  --max-upload-attempts 10 \
-  --attempt-timeout 600
-```
 # Creating Your API Key
 This is how the upload script authenticates with App Store Connect.
 
