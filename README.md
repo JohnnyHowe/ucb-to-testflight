@@ -20,9 +20,8 @@ This package is built with Unity Cloud Build in mind so it works smoothly there,
 Similar to above, but:
 * You have to run archive in xcode to create the `.ipa` file (UCB does this for you).
 * You have to call the `upload_to_testflight.sh` script yourself after archiving.
-* Variables are passed via a `.env` file. (See below)
+* Variables are passed environment variables. (See below)
 
-<br>
 Put envionment variables in a `.env` file at project root.
 
 Your `.env` file must contain:
@@ -31,6 +30,8 @@ Your `.env` file must contain:
  must also contain all the required variables and 
 
 See [example.env](example.env)
+
+(yes you could pass them some other way - maybe via bash wrapper? Who knows? The world is your oyster.)
 
 # Variables
 
