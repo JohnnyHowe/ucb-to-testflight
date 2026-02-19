@@ -1,7 +1,7 @@
 """UCB adapter that delegates TestFlight upload execution to pyliot."""
 from pathlib import Path
 
-from pyliot.upload_to_test_flight import upload_to_testflight as pyliot_upload_to_testflight
+from pyliot.upload_to_testflight import upload_to_testflight as pyliot_upload_to_testflight
 from .build_file_finder import BuildFileFinder
 
 
