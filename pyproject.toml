@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "ucb-to-testflight"
 version = "0.1.0"
 description = "Upload iOS .ipa builds to TestFlight."
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 dependencies = [
     "pyliot @ git+https://github.com/JohnnyHowe/pyliot.git",
     "python-command-line-helpers @ git+https://github.com/JohnnyHowe/python-command-line-helpers.git"
