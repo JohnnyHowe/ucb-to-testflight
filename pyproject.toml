@@ -9,7 +9,8 @@ description = "Upload iOS .ipa builds to TestFlight."
 requires-python = ">=3.9"
 dependencies = [
     "pyliot @ git+https://github.com/JohnnyHowe/pyliot.git",
-    "python-command-line-helpers @ git+https://github.com/JohnnyHowe/python-command-line-helpers.git"
+    "python-command-line-helpers @ git+https://github.com/JohnnyHowe/python-command-line-helpers.git",
+    "dotenv"
 ]
 
 [tool.setuptools]

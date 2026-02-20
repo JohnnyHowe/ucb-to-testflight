@@ -12,6 +12,7 @@ import argparse
 from enum import Enum
 import os
 from pathlib import Path
+import dotenv
 from typing import get_type_hints
 from python_command_line_helpers.arg_casting import cast_cli_arg
 from python_command_line_helpers import input_cleaning
@@ -85,8 +86,10 @@ class UploadParameters:
                 self.meta_data[parameter_name]["source"] = ParameterSource.DEFAULTS
 
     def _load_parameters_from_env(self) -> None:
+        dotenv.load_dotenv()
         for parameter_name in self._parameter_names:
             env_name = parameter_name.upper()
+            print(f"{env_name} in environ?: {env_name in os.environ}")
             if env_name in os.environ:
                 self._try_set_parameter(parameter_name, input_cleaning.unescape(os.environ[env_name]), ParameterSource.ENV)
 
@@ -96,7 +99,8 @@ class UploadParameters:
             parser.add_argument("--" + parameter_name.replace("_", "-"))
         known, unknown = parser.parse_known_args()
 
-        pretty_print(f"<warning>Got unknown command line args: {', '.join(unknown)}</warning>")
+        if len(unknown) > 0:
+            pretty_print(f"<warning>Got unknown command line args: {', '.join(unknown)}</warning>")
 
         input_cleaning.replace_hypens_with_underscore(known)
         for parameter_name in self._parameter_names:
