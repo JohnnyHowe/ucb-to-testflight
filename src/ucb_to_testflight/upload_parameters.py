@@ -89,7 +89,6 @@ class UploadParameters:
         dotenv.load_dotenv()
         for parameter_name in self._parameter_names:
             env_name = parameter_name.upper()
-            print(f"{env_name} in environ?: {env_name in os.environ}")
             if env_name in os.environ:
                 self._try_set_parameter(parameter_name, input_cleaning.unescape(os.environ[env_name]), ParameterSource.ENV)
 
