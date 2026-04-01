@@ -16,10 +16,14 @@ def upload_to_testflight(
 	attempt_timeout_seconds: int = 600,
 	show_fastlane_logs: bool = False
 ):
-	ipa_path = BuildFileFinder(output_directory, ".ipa").file_path
-
 	with open(changelog_path, "r") as file:
 		changelog = file.read()
+
+	print("\nFound Changelog ".ljust(32, "="))
+	print(changelog)
+	print("=" * 32)
+
+	ipa_path = BuildFileFinder(output_directory, ".ipa").file_path
 
 	pyliot_upload_to_testflight(
 		app_store_connect_api_key_issuer_id=app_store_connect_api_key_issuer_id,
